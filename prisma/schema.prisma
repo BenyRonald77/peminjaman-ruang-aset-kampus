@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Ruang {
+  id         Int            @id @default(autoincrement())
+  nama       String         @unique
+  gedung     String
+  kapasitas  Int
+  fasilitas  String         @default("")
+  created_at String
+  bookings   BookingRuang[]
+}
+
+model Aset {
+  id         Int              @id @default(autoincrement())
+  nama       String
+  kode_unik  String           @unique
+  kategori   String
+  kondisi    String           @default("baik")
+  status     String           @default("tersedia")
+  created_at String
+  bookings   BookingAset[]
+  perawatan  PerawatanAset[]
+  riwayat    RiwayatKondisi[]
+}
+
+model BookingRuang {
+  id           Int    @id @default(autoincrement())
+  ruang_id     Int
+  ruang        Ruang  @relation(fields: [ruang_id], references: [id], onDelete: Cascade)
+  peminjam_nama String
+  keperluan    String @default("")
+  tanggal      String
+  jam_mulai    String
+  jam_selesai  String
+  status       String @default("diajukan")
+  created_at   String
+
+  @@index([ruang_id, tanggal])
+}
+
+model BookingAset {
+  id             Int    @id @default(autoincrement())
+  aset_id        Int
+  aset           Aset   @relation(fields: [aset_id], references: [id], onDelete: Cascade)
+  peminjam_nama  String
+  keperluan      String @default("")
+  tanggal_pinjam String
+  tanggal_kembali String
+  status         String @default("diajukan")
+  created_at     String
+}
+
+model Persetujuan {
+  id           Int    @id @default(autoincrement())
+  booking_type String
+  booking_id   Int
+  level        Int
+  keputusan    String
+  catatan      String @default("")
+  diputus_pada String
+
+  @@index([booking_type, booking_id])
+}
+
+model PerawatanAset {
+  id         Int     @id @default(autoincrement())
+  aset_id    Int
+  aset       Aset    @relation(fields: [aset_id], references: [id], onDelete: Cascade)
+  tanggal    String
+  jenis      String
+  keterangan String  @default("")
+  biaya      Int     @default(0)
+  selesai    Boolean @default(false)
+  created_at String
+}
+
+model RiwayatKondisi {
+  id         Int    @id @default(autoincrement())
+  aset_id    Int
+  aset       Aset   @relation(fields: [aset_id], references: [id], onDelete: Cascade)
+  tanggal    String
+  kondisi    String
+  catatan    String @default("")
+  created_at String
+}
